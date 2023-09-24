@@ -1,0 +1,22 @@
+k8s_cp:
+  hosts:
+    kmaster:
+
+k8s_workers:
+  hosts:
+    kworker01:
+    kworker02:
+
+k8s:
+  children:
+    k8s_cp:
+    k8s_workers:
+
+other:
+  hosts:
+    neptune:
+    
+all:
+  vars:
+    domain_name: ramvarra.com
+    timezone: "America/Phoenix"

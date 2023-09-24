@@ -1,0 +1,22 @@
+
+---
+- name: Configure SSH
+  hosts: k8s
+  become: true
+
+  tasks:
+  - name: setup authorized key
+    ansible.posix.authorized_key:
+      user: rrvarra
+      state: present
+      key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+  - name: setup rrvarra to be passwordless sudo
+    ansible.builtin.lineinfile:
+      path: /etc/sudoers
+      state: present
+      regexp: '^rrvarra '
+      line: 'rrvarra ALL=(ALL:ALL) NOPASSWD: ALL'
+      validate: 'visudo -cf %s'
+
+

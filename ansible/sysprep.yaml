@@ -1,0 +1,45 @@
+---
+- name: Configure SSH
+  hosts: all
+  become: true
+
+  roles:
+  - role: systemd-timesyncd
+    timesync_timezone: "{{ timezone }}"
+    timesync_ntp_hosts:
+      - time.google.com
+
+  tasks:
+  - name: Update apt
+    ansible.builtin.apt:
+      update_cache: yes
+      cache_valid_time: 7200
+
+
+  - name: Configure hosts for fqdn
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      state: present
+      regexp: '^127.0.1.1 '
+      line: '127.0.1.1 {{ inventory_hostname }}.{{ domain_name }}  {{ inventory_hostname }}'
+
+  - name: Verify hostname matches inventory host
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
+  
+  - name: Verify FQDN
+    ansible.builtin.debug: 
+      msg: "FQDN OK - {{ansible_fqdn}}"
+    failed_when: ansible_fqdn != (inventory_hostname + '.' + domain_name)
+
+  - name: Verify IP
+    ansible.builtin.debug:
+      msg: "DNSIP: {{ lookup('community.dns.lookup', inventory_hostname+'.ramvarra.com.') }} HOSTIP: {{ ansible_default_ipv4.address }}"
+    #failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
+    failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
+
+  - name: Configure Timezone
+    community.general.timezone:
+      name: "{{ timezone }}"
+
+
