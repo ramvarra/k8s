@@ -9,7 +9,7 @@
     ansible.posix.authorized_key:
       user: rrvarra
       state: present
-      key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+      key: "{{ lookup('file', 'templates/ssh-authorized-keys') }}"
 
   - name: setup rrvarra to be passwordless sudo
     ansible.builtin.lineinfile:
@@ -19,4 +19,4 @@
       line: 'rrvarra ALL=(ALL:ALL) NOPASSWD: ALL'
       validate: 'visudo -cf %s'
 
-
+  

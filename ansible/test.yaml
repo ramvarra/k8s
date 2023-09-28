@@ -1,0 +1,11 @@
+
+- name: Test
+  hosts: k8s
+  become: true
+
+  tasks:
+  - name: Print All
+    ansible.builtin.script: "/usr/bin/python3 scripts/test.py {% for host in ansible_play_hosts %}{{ hostvars[host]['ansible_facts']['machine_id'] }} {% endfor %}"
+    run_once: true
+    delegate_to: localhost
+
