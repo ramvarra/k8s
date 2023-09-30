@@ -1,0 +1,23 @@
+---
+- name: Generate entries in /etc/hosts
+  ansible.builtin.template:
+    src: templates/hosts.j2
+    dest: /etc/hosts
+    backup: true
+    mode: '644'
+
+- name: Verify hostname matches inventory host
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Verify FQDN
+  ansible.builtin.debug:
+    msg: "FQDN OK - {{ansible_fqdn}}"
+  failed_when: ansible_fqdn != (inventory_hostname + '.' + domain_name)
+
+- name: Verify IP
+  ansible.builtin.debug:
+    msg: "DNSIP: {{ lookup('community.dns.lookup', inventory_hostname+'.ramvarra.com.') }} HOSTIP: {{ ansible_default_ipv4.address }}"
+  #failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
+  failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
+

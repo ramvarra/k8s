@@ -10,39 +10,27 @@
       - time.google.com
 
   tasks:
-  - name: Verify machine_ids are unique
-    ansible.builtin.script: "/usr/bin/python3 scripts/check-unique.py {% for host in ansible_play_hosts %}{{ hostvars[host]['ansible_facts']['machine_id'] }} {% endfor %}"
+
+  - name: Validate all machine_ids abnd product_ids are unqiue
+    ansible.builtin.script:
+      cmd: scripts/check-unique.py {% for host in ansible_play_hosts %}{{ hostvars[host].ansible_facts[item] }} {% endfor %}
+      executable: /usr/bin/python3
+    run_once: true
+    delegate_to: localhost
+    changed_when: false
+    loop:
+      - product_uuid
+      - machine_id
+
+  - name: Validate all MACs are unique
+    ansible.builtin.script:
+      cmd: scripts/check-unique.py {% for host in ansible_play_hosts %}{{ hostvars[host]['ansible_facts']['ens160']['macaddress'] }} {% endfor %}
+      executable: /usr/bin/python3
     run_once: true
     delegate_to: localhost
     changed_when: false
 
-  - name: Update apt
-    ansible.builtin.apt:
-      update_cache: yes
-      cache_valid_time: 7200
-
-
-  - name: Configure hosts for fqdn
-    ansible.builtin.lineinfile:
-      path: /etc/hosts
-      state: present
-      regexp: '^127.0.1.1 '
-      line: '127.0.1.1 {{ inventory_hostname }}.{{ domain_name }}  {{ inventory_hostname }}'
-
-  - name: Verify hostname matches inventory host
-    ansible.builtin.hostname:
-      name: "{{ inventory_hostname }}"
-  
-  - name: Verify FQDN
-    ansible.builtin.debug: 
-      msg: "FQDN OK - {{ansible_fqdn}}"
-    failed_when: ansible_fqdn != (inventory_hostname + '.' + domain_name)
-
-  - name: Verify IP
-    ansible.builtin.debug:
-      msg: "DNSIP: {{ lookup('community.dns.lookup', inventory_hostname+'.ramvarra.com.') }} HOSTIP: {{ ansible_default_ipv4.address }}"
-    #failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
-    failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
+  - import_tasks: set-host.yaml
 
   - name: Disable UFW
     ansible.builtin.service:
@@ -56,7 +44,7 @@
       regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
       replace: '# \1'
 
-  - name: Turn off swap 
+  - name: Turn off swap
     ansible.builtin.command: swapoff -a
     changed_when: false
 
@@ -65,4 +53,42 @@
       name:
         - nfs-common
       state: present
+      update_cache: true
     when: inventory_hostname in groups['k8s_workers']
+
+  - name: sysctl vm.swappiness=0
+    ansible.builtin.sysctl:
+      name: vm.swappiness
+      value: '0'
+      sysctl_file: /etc/sysctl.d/10-swappiness.conf
+      state: present
+
+  - name: Copy
+    ansible.builtin.copy:
+      dest: /etc/modules-load.d/k8s.conf
+      content: |
+        overlay
+        br_netfilter
+
+  - name: Load kernel modules
+    ansible.builtin.shell: modprobe {{ item }}
+    loop:
+      - overlay
+      - br_netfilter
+    changed_when: false
+
+  - name: Set sysctl settings
+    ansible.builtin.sysctl:
+      name: "{{ item.name }}"
+      value: "{{ item.value }}"
+      sysctl_file: /etc/sysctl.d/k8s.conf
+      state: present
+    with_items:
+      - name: net.bridge.bridge-nf-call-iptables
+        value: 1
+      - name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+      - name: net.ipv4.ip_forward
+        value: 1
+
+
