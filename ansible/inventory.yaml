@@ -20,3 +20,4 @@ all:
   vars:
     domain_name: ramvarra.com
     timezone: "America/Phoenix"
+    k8s_version: "1.28"

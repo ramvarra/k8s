@@ -2,11 +2,6 @@
 - name: Test
   hosts: k8s
   become: true
-  gather_facts: yes
+  gather_facts: true
 
   tasks:
-
-
-
-
-

@@ -11,7 +11,16 @@
 
   tasks:
 
-  - name: Validate all machine_ids abnd product_ids are unqiue
+  - name: Add to /etc/environment - needed to fix apt_repository issue
+    ansible.builtin.lineinfile:
+      path: /etc/environment
+      regexp: '^export GNUTLS_CPUID_OVERRIDE'
+      line: "export GNUTLS_CPUID_OVERRIDE=0x1"
+      mode: '0644'
+      owner: root
+      group: root
+    
+  - name: Validate all machine_ids and product_ids are unqiue
     ansible.builtin.script:
       cmd: scripts/check-unique.py {% for host in ansible_play_hosts %}{{ hostvars[host].ansible_facts[item] }} {% endfor %}
       executable: /usr/bin/python3
@@ -90,5 +99,7 @@
         value: 1
       - name: net.ipv4.ip_forward
         value: 1
+      - name: fs.inotify.max_user_instances
+        value: 1024
 
 
