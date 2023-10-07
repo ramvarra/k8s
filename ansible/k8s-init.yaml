@@ -1,0 +1,14 @@
+
+- name: Initialize Kubernetes Cluster - Onetime
+  hosts: k8s
+  become: true
+
+  tasks:
+
+  - name: Init
+    ansible.builtin.shell: |-
+      mkdir -p $HOME/.kube &&
+      cp -i /etc/kubernetes/admin.conf $HOME/.kube/config &&
+      chown -R {{k8s_user}}:{{k8s_user}} $HOME/.kube 
+
+    when: ansible_hostname == 'kmaster'

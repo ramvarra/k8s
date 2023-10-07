@@ -7,7 +7,7 @@
   tasks:
   - name: setup authorized key
     ansible.posix.authorized_key:
-      user: rrvarra
+      user: {{k8s_user}}
       state: present
       key: "{{ lookup('file', 'templates/ssh-authorized-keys') }}"
 
@@ -15,8 +15,8 @@
     ansible.builtin.lineinfile:
       path: /etc/sudoers
       state: present
-      regexp: '^rrvarra '
-      line: 'rrvarra ALL=(ALL:ALL) NOPASSWD: ALL'
+      regexp: "^{{k8s_user}} "
+      line: "{{k8s_user}} ALL=(ALL:ALL) NOPASSWD: ALL"
       validate: 'visudo -cf %s'
 
-  
+

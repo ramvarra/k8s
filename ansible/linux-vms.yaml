@@ -1,6 +1,8 @@
+# Prepare LINUX VMS IN HOME ENV
 ---
-- name: Configure SSH
-  hosts: k8s
+- name: Configure Linux Vms
+  hosts: linux_vms
+  gather_facts: true
   become: true
 
   roles:
@@ -39,8 +41,6 @@
     delegate_to: localhost
     changed_when: false
 
-  - import_tasks: set-host.yaml
-
   - name: Disable UFW
     ansible.builtin.service:
       name: ufw
@@ -70,36 +70,26 @@
         - nfs-common
       state: present
       update_cache: true
-    when: inventory_hostname in groups['k8s_workers']
 
-  - name: Copy
-    ansible.builtin.copy:
-      dest: /etc/modules-load.d/k8s.conf
-      content: |
-        overlay
-        br_netfilter
+  - name: Generate entries in /etc/hosts
+    ansible.builtin.template:
+      src: templates/linux-hosts.j2
+      dest: /etc/hosts
+      backup: true
+      mode: '644'
 
-  - name: Load kernel modules
-    ansible.builtin.shell: modprobe {{ item }}
-    loop:
-      - overlay
-      - br_netfilter
-    changed_when: false
+  - name: Verify hostname matches inventory host
+    ansible.builtin.hostname:
+      name: "{{ inventory_hostname }}"
 
-  - name: Set sysctl settings
-    ansible.builtin.sysctl:
-      name: "{{ item.name }}"
-      value: "{{ item.value }}"
-      sysctl_file: /etc/sysctl.d/k8s.conf
-      state: present
-    with_items:
-      - name: net.bridge.bridge-nf-call-iptables
-        value: 1
-      - name: net.bridge.bridge-nf-call-ip6tables
-        value: 1
-      - name: net.ipv4.ip_forward
-        value: 1
-      - name: fs.inotify.max_user_instances
-        value: 1024
+  - name: Verify FQDN
+    ansible.builtin.debug:
+      msg: "FQDN OK - {{ansible_fqdn}}"
+    failed_when: ansible_fqdn != (inventory_hostname + '.' + domain_name)
+
+  - name: Verify IP
+    ansible.builtin.debug:
+      msg: "DNSIP: {{ lookup('community.dns.lookup', inventory_hostname+'.ramvarra.com.') }} HOSTIP: {{ ansible_default_ipv4.address }}"
+    failed_when: lookup('community.dns.lookup', inventory_hostname+'.'+domain_name+'.') != ansible_default_ipv4.address
 
 

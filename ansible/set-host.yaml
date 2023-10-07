@@ -3,6 +3,8 @@
   ansible.builtin.template:
     src: templates/hosts.j2
     dest: /etc/hosts
+    vars: 
+      host_entry_list: groups['k8s']
     backup: true
     mode: '644'
 

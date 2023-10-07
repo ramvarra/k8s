@@ -7,7 +7,7 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 
 # BEGIN k8s IP BLOCK
-{% for item in groups['k8s'] %}
+{% for item in groups['all'] %}
 {{ hostvars[item].ansible_default_ipv4.address }} {{ hostvars[item].ansible_hostname ~'.'~ domain_name }} {{ hostvars[item].ansible_hostname }}
 {% endfor %}
 # END k8s IP BLOCK
