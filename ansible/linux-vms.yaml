@@ -64,10 +64,11 @@
       sysctl_file: /etc/sysctl.d/10-swappiness.conf
       state: present
   
-  - name: Install nfs-common on worker nodes
+  - name: Install base set of packages
     ansible.builtin.apt:
       name:
         - nfs-common
+        - jq
       state: present
       update_cache: true
 

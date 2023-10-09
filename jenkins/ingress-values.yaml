@@ -1,0 +1,9 @@
+
+controller:
+  hostPort:
+      #-- Enable 'hostPort' or not
+      enabled: true
+
+  # -- Use a `DaemonSet` or `Deployment`
+  kind: DaemonSet
+

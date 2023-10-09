@@ -1,0 +1,24 @@
+---
+# Create a PV and reserver it it to be claimed by jenkins-home-pvc
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: jenkins-home-pv
+spec:
+  storageClassName: ""
+  claimRef:
+    name: jenkins-home-pvc
+    namespace: jenkins
+  capacity: 
+    storage: "10Gi"
+  accessModes:
+    - ReadWriteOnce
+    - ReadWriteMany
+    - ReadOnlyMany
+    
+  persistentVolumeReclaimPolicy: Retain
+  nfs: 
+    server: truenas.ramvarra.com
+    path: /mnt/kubedata-01/KUBEDATA-01
+
+

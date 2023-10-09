@@ -64,13 +64,13 @@
       sysctl_file: /etc/sysctl.d/10-swappiness.conf
       state: present
   
-  - name: Install nfs-common on worker nodes
+  - name: Install common packages
     ansible.builtin.apt:
       name:
         - nfs-common
+        - jq
       state: present
       update_cache: true
-    when: inventory_hostname in groups['k8s_workers']
 
   - name: Copy
     ansible.builtin.copy:

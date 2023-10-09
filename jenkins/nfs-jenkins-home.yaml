@@ -1,0 +1,28 @@
+# Create a nfs mounted admin 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jenkins-home
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  volumes:
+  - name: nfs-data
+    persistentVolumeClaim: 
+      claimName: jenkins-home-pvc
+
+  containers:
+  - name: ubuntu
+    image: ubuntu
+    command: ["sleep", "infinity"]
+    resources:
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+    volumeMounts:
+      - name: nfs-data
+        mountPath: /var/jenkins-home
+    

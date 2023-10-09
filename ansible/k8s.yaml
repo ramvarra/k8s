@@ -4,7 +4,7 @@
   become: true
 
   tasks:
-  - name: Install k8s pre-requisite
+  - name: Install k8s pre-requisite and other useful package
     ansible.builtin.apt:
       name:
       - ca-certificates 
