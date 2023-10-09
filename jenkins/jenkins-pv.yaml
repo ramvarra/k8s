@@ -9,16 +9,16 @@ spec:
   claimRef:
     name: jenkins-home-pvc
     namespace: jenkins
-  capacity: 
+  capacity:
     storage: "10Gi"
   accessModes:
     - ReadWriteOnce
     - ReadWriteMany
     - ReadOnlyMany
-    
+
   persistentVolumeReclaimPolicy: Retain
-  nfs: 
+  nfs:
     server: truenas.ramvarra.com
-    path: /mnt/kubedata-01/KUBEDATA-01
+    path: /mnt/kubedata-01/KUBEDATA-01/jenkins_home
 
 

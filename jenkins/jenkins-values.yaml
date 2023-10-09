@@ -1,13 +1,43 @@
+controller:
+  jenkinsUrl:  "http://jenkins.ramvarra.com"
+  jenkinsAdminEmail: "ramvarra@gmail.com"
 
-resources:
-  requests:
-    cpu: "100m"
-    memory: "256Mi"
-  limits:
-    cpu: "500m"
-    memory: "4Gi"
+  agentListenerServiceType: "NodePort"
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "4Gi"
+
+  #kubectl -n jenkins create secret generic rrvarra --from-literal=password=xxxxxxxxxxxxxx
+  #kubectl -n jenkins create secret generic gmail --from-literal=api-key=xxxxxxxxxxxxxx
+  additionalExistingSecrets:
+    - name: gmail
+      keyName: api-key
+    - name: rrvarra
+      keyName: password
+
+  adminUser: rrvarra
+  adminPassword: "${rrvarra-password}"
+
+  configScripts:
+    main-config: |
+      jenkins:
+        systemMessage: RVHOME  CICD Jenkins Server
+      unclassified:
+        mailer:
+          authentication:
+            password: "${gmail-api-key}"
+            username: "ramvarra@gmail.com"
+          replyToAddress: "do-not-reply@nowhere.com"
+          smtpHost: "smtp.gmail.com"
+          useTls: true
 
 persistence:
   enabled: true
   ## If defined, PVC must be created manually before volume will be bound
   existingClaim: jenkins-home-pvc
+
